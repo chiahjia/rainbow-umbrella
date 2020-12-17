@@ -5,13 +5,10 @@ import os
 from matplotlib import pyplot as plt
 
 
-PATH = 'CFD/Images/'
+PATH = 'CFD/Images/' #path of the dataset, NOTE that i didnt include it in repo
 folder = ['CFD-MR', 'CFD']
-ethnic_gen = ['WM', 'WF', 'LM', 'LF', 'BM', 'BF', 'AM', 'AF']
 
 output_folder_path = 'gabor_output'
-
-
 PI = math.pi
 
 orientation = [0, PI/4, PI/2, 3*PI/4] #orientation of the filter in degree
@@ -21,66 +18,76 @@ def load_downsam_data():
 
 	folder_setup(output_folder_path)
 
-	for img_name in os.listdir(PATH + folder[0]):
-		img = cv2.imread(os.path.join(PATH+folder[0], img_name), cv2.IMREAD_GRAYSCALE)
+	#loop through the image file in the dataset
+	for temp_folder in folder:
+		for img_name in os.listdir(PATH + temp_folder):
+			img = cv2.imread(os.path.join(PATH+temp_folder, img_name), cv2.IMREAD_GRAYSCALE)
 
-		print(img_name)
-		if 'Icon' in img_name:
-			continue
-		if '.DS_Store' in img_name:
-			continue
+			#ignore some odd files in the dataset
+			if 'Icon' in img_name:
+				continue
+			if '.DS_Store' in img_name:
+				continue
 
-		express_class = determine_out_location(img_name)
+			#get the type of expression of the image
+			'''
+			N: neutral
+			A: angry
+			F: fear
+			HC: happy, closed mouth
+			HO: happy, open mouth
+			'''
+			express_class = determine_out_location(img_name)
 
-		crop_img = img[378:1338, 581:1861]
-		write_crop_img('crop_' + img_name, express_class, crop_img)
-		print(crop_img.shape)
-		
-		ds_img = cv2.pyrDown(crop_img, dstsize=(int(crop_img.shape[1]/2), int(crop_img.shape[0]/2)))
-		ds_img = cv2.pyrDown(ds_img, dstsize=(int(ds_img.shape[1]/2), int(ds_img.shape[0]/2)))
-		ds_img = cv2.pyrDown(ds_img, dstsize=(int(ds_img.shape[1]/2), int(ds_img.shape[0]/2)))
-		ds_img = cv2.pyrDown(ds_img, dstsize=(int(ds_img.shape[1]/2), int(ds_img.shape[0]/2)))
-
-		#print(ds_img.shape)
-		#plt.imshow(ds_img, cmap='gray')
-		#plt.show()
-
-		output = []
-		kernel_list = calculateKernel()
-
-		col_vec =[]
-		i = 1
-		for k in kernel_list:
-			k_img = cv2.filter2D(ds_img, -1, k)
-
-			final_img = cv2.pyrDown(k_img, dstsize=(int(k_img.shape[1]/2), int(k_img.shape[0]/2)))
-			final_img = cv2.pyrDown(final_img, dstsize=(int(final_img.shape[1]/2), int(final_img.shape[0]/2)))
-			#plt.subplot(4,3,i)
-			#plt.imshow(final_img, cmap='gray')
-			final_img_name = img_name[:len(img_name)-4] + '-filter'+ str(i) + '.jpg'
-
-			print(final_img)
-			if i == 1:
-				col_vec = final_img.reshape(300, 1)
-				#print(col_vec)
-			else:
-				temp_vec = final_img.reshape(300,1)
-				col_vec = np.concatenate((col_vec, temp_vec), axis=0)
-
-			print('col_vec shape is ' + str(col_vec.shape))
-			#f = open(output_folder_path + "/test.txt", "w")
-			#f.write(str(col_vec))
-			#np.savetxt(output_folder_path + '/'+ "/test.txt", col_vec, delimiter=',', fmt='%d')
+			#crop the image to 1280 x 960 and save it under gabor_output/[expression-type]_crop folder
+			crop_img = img[378:1338, 581:1861]
+			write_crop_img('crop_' + img_name, express_class, crop_img)
 			
-			write_img(final_img_name, express_class, final_img)
-			i += 1
-		write_txt(img_name[:len(img_name)-4], express_class, col_vec)
+			#downsample the image from 1280 x 960 to 80 x 60 using pyramidImage
+			#NOTE: a single cv2.pyrDown() call only reduce the # of pixels to max(1/2 x original image size)
+			#      thus, multiple calls is required to downsample it to desire size
+			ds_img = cv2.pyrDown(crop_img, dstsize=(int(crop_img.shape[1]/2), int(crop_img.shape[0]/2)))
+			ds_img = cv2.pyrDown(ds_img, dstsize=(int(ds_img.shape[1]/2), int(ds_img.shape[0]/2)))
+			ds_img = cv2.pyrDown(ds_img, dstsize=(int(ds_img.shape[1]/2), int(ds_img.shape[0]/2)))
+			ds_img = cv2.pyrDown(ds_img, dstsize=(int(ds_img.shape[1]/2), int(ds_img.shape[0]/2)))
+
+			output = []
+
+			#used to calculate Gabor Kernal
+			#kernel_list contains 12 filters
+			kernel_list = calculateKernel()
 
 
-		#plt.show()
-		
-		
+			#apply the 12 filters on an image -> 12 resulting images from a single input
+			#then, downsample the resulting image from 80x60 to 20x15
+			#convert the resulting images to column vector of size 300x1
+			#concatenate the 12 column vectors to form a 3600x1 vector
+			#the 3600x1 vector is the final output for a single input image 
+			#and is store in a [INPUT-IMAGE-NAME].txt file
+			col_vec =[]
+			i = 1
+			for k in kernel_list:
+				k_img = cv2.filter2D(ds_img, -1, k) #apply filter
 
+				#downsample
+				final_img = cv2.pyrDown(k_img, dstsize=(int(k_img.shape[1]/2), int(k_img.shape[0]/2)))
+				final_img = cv2.pyrDown(final_img, dstsize=(int(final_img.shape[1]/2), int(final_img.shape[0]/2)))
+
+				final_img_name = img_name[:len(img_name)-4] + '-filter'+ str(i) + '.jpg'
+
+				#convert column vector
+				if i == 1:
+					col_vec = final_img.reshape(300, 1)
+				else:
+					temp_vec = final_img.reshape(300,1)
+					col_vec = np.concatenate((col_vec, temp_vec), axis=0)
+				
+				write_img(final_img_name, express_class, final_img)
+				i += 1
+			write_txt(img_name[:len(img_name)-4], express_class, col_vec)
+
+#function to calculate the Gabor kernel
+#please refer the report for further explaination on this function
 def calculateKernel():
 	kernel_list = []
 	for mu in orientation:
@@ -89,19 +96,20 @@ def calculateKernel():
 			k_v = (2 ** (-(v + 2) / 2)) * 180
 
 			wavelength  = ((k_v * math.cos(mu_prime))**2 + (k_v * math.sin(mu_prime))**2 ) ** (0.5)
-			#print(wavelength)
 
 			kernel = cv2.getGaborKernel((3,3), 2*PI, mu, wavelength, 0.5)
 			kernel_list.append(kernel)
 
 	return kernel_list
 
+#function to help sort the result images
 def determine_out_location(img_name):
 	name_len = len(img_name)
 	expression = img_name[name_len-5]
 
 	return expression
 
+#used to setup all the neccassary folders to store the result images
 def folder_setup(output_path):
 
 	if not os.path.exists(output_folder_path):
@@ -137,6 +145,7 @@ def folder_setup(output_path):
 	if not os.path.exists(output_folder_path+'/HO_crop'):
 		os.mkdir(output_folder_path+'/HO_crop')
 
+#funtion to create an image to different folders (according to their expression)
 def write_img(img_name, express_class, img):
 
 	if express_class == 'C':
@@ -146,6 +155,7 @@ def write_img(img_name, express_class, img):
 	else:
 		cv2.imwrite(output_folder_path + '/' + express_class + '/' + img_name, img)
 
+#funtion to create an cropped image to different folders (according to their expression)
 def write_crop_img(img_name, express_class, img):
 
 	if express_class == 'C':
@@ -155,6 +165,7 @@ def write_crop_img(img_name, express_class, img):
 	else:
 		cv2.imwrite(output_folder_path + '/' + express_class + '_crop/' + img_name, img)
 
+#funtion to create a txt file to store the final vector and group them to different folders (according to their expression)
 def write_txt(img_name, express_class, output_arr):
 	if express_class == 'C':
 		np.savetxt(output_folder_path + '/HC/' + img_name + '.txt' , output_arr, delimiter=',', fmt='%d')
