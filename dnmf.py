@@ -74,6 +74,7 @@ def reduce_all_imgs():
 
             # transform img and save to dest folder
             img = cv2.cv2.cvtColor(cv2.imread(path2), cv2.COLOR_BGR2GRAY)
+            img = crop_and_downsample(img)
             W = model.transform(img)
 
             # save to dest folder
@@ -81,17 +82,29 @@ def reduce_all_imgs():
             os.chdir(expr_dict[expr_code])
             np.savetxt(f'{path2[:i_dot]}.txt', W)
 
-            # # plotting for testing purposes
-            # img_after = np.matmul(W, model.components_)
-            # plt.subplot(1, 2, 1)
-            # plt.imshow(img, cmap='gray')
-            # plt.subplot(1, 2, 2)
-            # plt.imshow(img_after, cmap='gray')
+            # plotting for testing purposes
+            img_after = np.matmul(W, model.components_)
+            plt.subplot(1, 2, 1)
+            plt.imshow(img, cmap='gray')
+            plt.subplot(1, 2, 2)
+            plt.imshow(img_after, cmap='gray')
 
-            # plt.show()
-            # exit()
+            plt.show()
+            exit()
 
         os.chdir(source)
+
+def crop_and_downsample(img):
+    crop_img = img[378:1338, 581:1861]
+    
+    #downsample the image from 1280 x 960 to 80 x 60 using pyramidImage
+    #NOTE: a single cv2.pyrDown() call only reduce the # of pixels to max(1/2 x original image size)
+    #      thus, multiple calls is required to downsample it to desire size
+    ds_img = cv2.pyrDown(crop_img, dstsize=(int(crop_img.shape[1]/2), int(crop_img.shape[0]/2)))
+    ds_img = cv2.pyrDown(ds_img, dstsize=(int(ds_img.shape[1]/2), int(ds_img.shape[0]/2)))
+    ds_img = cv2.pyrDown(ds_img, dstsize=(int(ds_img.shape[1]/2), int(ds_img.shape[0]/2)))
+    ds_img = cv2.pyrDown(ds_img, dstsize=(int(ds_img.shape[1]/2), int(ds_img.shape[0]/2)))
+    return ds_img
 
 
 def get_model(source):
@@ -101,7 +114,12 @@ def get_model(source):
     os.chdir(foldername)
     
     basis_img = cv2.cv2.cvtColor(cv2.imread(filename), cv2.COLOR_BGR2GRAY)
-    model = NMF(n_components=10, init='random', random_state=0, max_iter=1000)
+    basis_img = crop_and_downsample(basis_img)
+
+    dim = cfg['nmf_dim']
+    max_iter = cfg['nmf_max_iter']
+
+    model = NMF(n_components=dim, init='random', random_state=0, max_iter=max_iter)
     model.fit(basis_img)
 
     os.chdir(source)
