@@ -82,15 +82,15 @@ def reduce_all_imgs():
             os.chdir(expr_dict[expr_code])
             np.savetxt(f'{path2[:i_dot]}.txt', W)
 
-            # plotting for testing purposes
-            img_after = np.matmul(W, model.components_)
-            plt.subplot(1, 2, 1)
-            plt.imshow(img, cmap='gray')
-            plt.subplot(1, 2, 2)
-            plt.imshow(img_after, cmap='gray')
+            # # plotting for testing purposes
+            # img_after = np.matmul(W, model.components_)
+            # plt.subplot(1, 2, 1)
+            # plt.imshow(img, cmap='gray')
+            # plt.subplot(1, 2, 2)
+            # plt.imshow(img_after, cmap='gray')
 
-            plt.show()
-            exit()
+            # plt.show()
+            # exit()
 
         os.chdir(source)
 
