@@ -5,6 +5,7 @@ cfg = dict(
     # full path
     source_folder=r'',
     dest_folder_nmf=r'',
+    dest_folder_occlusion=r'',
     
     # only folder/file names
     nmf_basis_img_folder=r'AF-206',
