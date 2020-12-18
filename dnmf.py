@@ -44,6 +44,9 @@ def reduce_all_imgs():
     dest = cfg['dest_folder_nmf']
     img_extensions = cfg['valid_img_extensions']
 
+    try: os.mkdir(dest)
+    except: pass
+
     # build dest folders if required
     for _, expr_dir in expr_dict.items():
         expr_path = os.path.join(dest, expr_dir)
@@ -58,8 +61,10 @@ def reduce_all_imgs():
         if not os.path.isdir(path): continue
         
         # iterate over imgs in this subject's dir
-        os.chdir(path)
+        full_path = os.path.join(source, path)
+        os.chdir(full_path)
         for path2 in os.listdir(os.getcwd()):
+            os.chdir(full_path)
             if not os.path.isfile(path2): continue
             
             # confirm that it's an img file
