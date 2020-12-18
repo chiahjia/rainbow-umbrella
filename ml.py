@@ -10,11 +10,18 @@ from torch.utils.data import Dataset, DataLoader
 import os
 import random
 
-expressions = {'N': [1, 0, 0, 0, 0],
-               'A': [0, 1, 0, 0, 0],
-               'F': [0, 0, 1, 0, 0],
-               'C': [0, 0, 0, 1, 0], #HC
-               'O': [0, 0, 0, 0, 1] #HO
+# expressions = {'N': [1, 0, 0, 0, 0],
+#                'A': [0, 1, 0, 0, 0],
+#                'F': [0, 0, 1, 0, 0],
+#                'C': [0, 0, 0, 1, 0], #HC
+#                'O': [0, 0, 0, 0, 1] #HO
+#                }
+
+expressions = {'N': 0,
+               'A': 1,
+               'F': 2,
+               'C': 3, #HC
+               'O': 4 #HO
                }
 
 
@@ -112,15 +119,17 @@ class FaceEx(nn.Module):
 net = FaceEx(1680, 60, 60, 60, 5)
 #net.train()
 opt = optim.Adam(net.parameters(), lr=0.1)
-loss_func = nn.MSELoss()
+loss_func = nn.CrossEntropyLoss()
 
-print(trainloader.__len__())
+
 
 for epoch in range(EPOCHS):
     for data in trainloader:
         X, y = data
         net.zero_grad()
         output = net(X)
-        loss = loss_func(output.float(), y.float())
+        loss = loss_func(output, y)
         loss.backward()
         opt.step()
+    
+print(net(test_set[0][0]), test_set[0][1])
