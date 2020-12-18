@@ -80,7 +80,7 @@ def reduce_all_imgs():
             # save to dest folder
             os.chdir(dest)
             os.chdir(expr_dict[expr_code])
-            np.savetxt(f'{path2[:i_dot]}.txt', W)
+            np.savetxt(f'{path2[:i_dot]}.txt', W.reshape(-1))
 
             # # plotting for testing purposes
             # img_after = np.matmul(W, model.components_)
