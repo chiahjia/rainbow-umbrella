@@ -17,6 +17,9 @@ freq = [0,2,4]
 def load_downsam_data():
 
 	folder_setup(output_folder_path)
+	#used to calculate Gabor Kernal
+	#kernel_list contains 12 filters
+	kernel_list = calculateKernel()
 
 	#loop through the image file in the dataset
 	for temp_folder in folder:
@@ -53,10 +56,6 @@ def load_downsam_data():
 
 			output = []
 
-			#used to calculate Gabor Kernal
-			#kernel_list contains 12 filters
-			kernel_list = calculateKernel()
-
 
 			#apply the 12 filters on an image -> 12 resulting images from a single input
 			#then, downsample the resulting image from 80x60 to 20x15
@@ -74,16 +73,18 @@ def load_downsam_data():
 				final_img = cv2.pyrDown(final_img, dstsize=(int(final_img.shape[1]/2), int(final_img.shape[0]/2)))
 
 				final_img_name = img_name[:len(img_name)-4] + '-filter'+ str(i) + '.jpg'
+				final_img = final_img[:14, 5:15] #further crop the image for reduce the vector size
 
 				#convert column vector
 				if i == 1:
-					col_vec = final_img.reshape(300, 1)
+					col_vec = final_img.reshape(140, 1)
 				else:
-					temp_vec = final_img.reshape(300,1)
+					temp_vec = final_img.reshape(140,1)
 					col_vec = np.concatenate((col_vec, temp_vec), axis=0)
 				
 				write_img(final_img_name, express_class, final_img)
 				i += 1
+
 			write_txt(img_name[:len(img_name)-4], express_class, col_vec)
 
 #function to calculate the Gabor kernel
