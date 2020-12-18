@@ -65,7 +65,7 @@ dataset = GaborData(gabor_data, gabor_labels)
 train_set, test_set = torch.utils.data.random_split(dataset, [1200, 95])
 
 trainloader = DataLoader(train_set, batch_size=10, shuffle=True)
-testloader = DataLoader(test_set, batch_size=5, shuffle=True)
+testloader = DataLoader(test_set, batch_size=10, shuffle=True)
 
 
 
@@ -115,5 +115,17 @@ for epoch in range(EPOCHS):
         loss.backward()
         opt.step()
 
+test_correct = 0
+total = 0
+for data in testloader:
+    X, y = data
+    output = net(X)
+    if torch.argmax(output) == y[0]:
+        #print(torch.argmax(output))
+        print(y[0])
+        test_correct += 1
+    total += 1
+
+print(test_correct / total)
 
 
