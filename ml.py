@@ -100,6 +100,7 @@ class FaceEx(nn.Module):
     def __init__(self, input, h1, h2, h3, classes):
         super().__init__()
         self.relu = nn.ReLU()
+        self.sig = nn.Sigmoid()
         self.fc1 = nn.Linear(input, h1)
         self.fc2 = nn.Linear(h1, h2)
         self.fc3 = nn.Linear(h2, h3)
@@ -113,7 +114,7 @@ class FaceEx(nn.Module):
         out = self.fc3(out)
         out = self.relu(out)
         #return torch.tensor(np.linalg.norm(self.fc4(out).detach().numpy()))
-        return self.fc4(out)
+        return self.sig(self.fc4(out))
 
 
 net = FaceEx(1680, 60, 60, 60, 5)
@@ -131,5 +132,5 @@ for epoch in range(EPOCHS):
         loss = loss_func(output, y)
         loss.backward()
         opt.step()
-    
+
 print(net(test_set[0][0]), test_set[0][1])
