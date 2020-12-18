@@ -24,7 +24,8 @@ expressions = {'N': 0,
                'O': 4 #HO
                }
 
-
+n = 0
+a = 0
 gabor_data = []
 gabor_labels = []
 path = os.getcwd() + '/gabor_output_2/gabors'
@@ -39,34 +40,14 @@ for fold in folders:
         if str(file)[-3:] == 'txt':
             text = open(temp_path + '/' + str(file))
             lst = text.read().splitlines()
-            #data_tens = torch.Tensor([int(i) for i in lst])
-            #label = torch.Tensor(expressions[str(file)[-5]])
             data_tens = [int(i) for i in lst]
             label = expressions[str(file)[-5]]
+            if str(file)[-5] == 'A':
+                a += 1
+            if str(file)[-5] == 'N':
+                n += 1
             gabor_data.append(data_tens)
             gabor_labels.append(label)
-
-            # gabor_dataset.append(thing)
-
-# make batches:
-# data_batches = []
-# label_batches = []
-# length = len(gabor_labels)
-# while len(gabor_data) > 0:
-#     i = 0
-#     batch = []
-#     labels = []
-#     while i < 5:
-#         index = random.randint(0, length - 1)
-#         batch.append(torch.Tensor(gabor_data[index]))
-#         labels.append(torch.Tensor(gabor_labels[index]))
-#         gabor_data.pop(index)
-#         gabor_labels.pop(index)
-#         length -= 1
-#         i += 1
-#     data_batches.append(torch.Tensor(batch))
-#
-#     label_batches.append(torch.Tensor(labels))
 
 
 class GaborData(Dataset):
@@ -85,7 +66,7 @@ class GaborData(Dataset):
         return len(self.data)
 
 dataset = GaborData(gabor_data, gabor_labels)
-train_set, test_set = torch.utils.data.random_split(dataset, [1100, 195])
+train_set, test_set = torch.utils.data.random_split(dataset, [1200, 95])
 
 trainloader = DataLoader(train_set, batch_size=10, shuffle=True)
 testloader = DataLoader(test_set, batch_size=5, shuffle=True)
@@ -101,6 +82,7 @@ class FaceEx(nn.Module):
         super().__init__()
         self.relu = nn.ReLU()
         self.sig = nn.Sigmoid()
+        self.lsm = nn.LogSoftmax()
         self.fc1 = nn.Linear(input, h1)
         self.fc2 = nn.Linear(h1, h2)
         self.fc3 = nn.Linear(h2, h3)
@@ -114,22 +96,26 @@ class FaceEx(nn.Module):
         out = self.fc3(out)
         out = self.relu(out)
         #return torch.tensor(np.linalg.norm(self.fc4(out).detach().numpy()))
-        return self.sig(self.fc4(out))
+        #return self.sig(self.fc4(out))
+        return self.fc4(out)
 
 
-net = FaceEx(1680, 60, 60, 60, 5)
+net = FaceEx(1680, 100, 150, 150, 5)
 #net.train()
 opt = optim.Adam(net.parameters(), lr=0.1)
-loss_func = nn.CrossEntropyLoss()
+loss_func = nn.CrossEntropyLoss(torch.tensor([0.2, 1, 1, 1, 1]))
 
 
 
 for epoch in range(EPOCHS):
     for data in trainloader:
         X, y = data
+
         net.zero_grad()
         output = net(X)
+        print(output)
         loss = loss_func(output, y)
+
         loss.backward()
         opt.step()
 
