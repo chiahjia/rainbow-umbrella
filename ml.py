@@ -62,7 +62,7 @@ class GaborData(Dataset):
         return len(self.data)
 
 dataset = GaborData(gabor_data, gabor_labels)
-train_set, test_set = torch.utils.data.random_split(dataset, [1200, 95])
+train_set, test_set = torch.utils.data.random_split(dataset, [1200, 95]) # change depending on dataset size
 
 trainloader = DataLoader(train_set, batch_size=10, shuffle=True)
 testloader = DataLoader(test_set, batch_size=10, shuffle=True)
