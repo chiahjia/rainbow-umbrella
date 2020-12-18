@@ -24,8 +24,7 @@ expressions = {'N': 0,
                'O': 4 #HO
                }
 
-n = 0
-a = 0
+
 gabor_data = []
 gabor_labels = []
 path = os.getcwd() + '/gabor_output_2/gabors'
@@ -42,13 +41,10 @@ for fold in folders:
             lst = text.read().splitlines()
             data_tens = [int(i) for i in lst]
             label = expressions[str(file)[-5]]
-            if str(file)[-5] == 'A':
-                a += 1
-            if str(file)[-5] == 'N':
-                n += 1
             gabor_data.append(data_tens)
             gabor_labels.append(label)
 
+print(len(gabor_data))
 
 class GaborData(Dataset):
 
@@ -78,15 +74,15 @@ EPOCHS = 3
 
 class FaceEx(nn.Module):
 
-    def __init__(self, input, h1, h2, h3, classes):
+    def __init__(self, input, h1, h2, classes):
         super().__init__()
         self.relu = nn.ReLU()
         self.sig = nn.Sigmoid()
         self.lsm = nn.LogSoftmax()
         self.fc1 = nn.Linear(input, h1)
         self.fc2 = nn.Linear(h1, h2)
-        self.fc3 = nn.Linear(h2, h3)
-        self.fc4 = nn.Linear(h3, classes)
+        self.fc3 = nn.Linear(h2, classes)
+
 
     def forward(self, batch):
         out = self.fc1(batch)
@@ -94,13 +90,13 @@ class FaceEx(nn.Module):
         out = self.fc2(out)
         out = self.relu(out)
         out = self.fc3(out)
-        out = self.relu(out)
+
         #return torch.tensor(np.linalg.norm(self.fc4(out).detach().numpy()))
         #return self.sig(self.fc4(out))
-        return self.fc4(out)
+        return out
 
 
-net = FaceEx(1680, 100, 150, 150, 5)
+net = FaceEx(1680, 60, 60, 5)
 #net.train()
 opt = optim.Adam(net.parameters(), lr=0.1)
 loss_func = nn.CrossEntropyLoss(torch.tensor([0.2, 1, 1, 1, 1]))
@@ -119,4 +115,5 @@ for epoch in range(EPOCHS):
         loss.backward()
         opt.step()
 
-print(net(test_set[0][0]), test_set[0][1])
+
+
