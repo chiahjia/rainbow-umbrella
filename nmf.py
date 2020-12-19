@@ -87,16 +87,6 @@ def reduce_all_imgs():
             os.chdir(expr_dict[expr_code])
             np.savetxt(f'{path2[:i_dot]}.txt', W.reshape(-1))
 
-            # # plotting for testing purposes
-            # img_after = np.matmul(W, model.components_)
-            # plt.subplot(1, 2, 1)
-            # plt.imshow(img, cmap='gray')
-            # plt.subplot(1, 2, 2)
-            # plt.imshow(img_after, cmap='gray')
-
-            # plt.show()
-            # exit()
-
         os.chdir(source)
 
 def crop_and_downsample(img):
