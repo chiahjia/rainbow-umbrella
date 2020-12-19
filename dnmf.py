@@ -79,7 +79,7 @@ def reduce_all_imgs():
 
             # transform img and save to dest folder
             img = cv2.cv2.cvtColor(cv2.imread(path2), cv2.COLOR_BGR2GRAY)
-            img = crop_and_downsample(img)
+            # img = crop_and_downsample(img)
             W = model.transform(img)
 
             # save to dest folder
@@ -133,7 +133,8 @@ def get_model(source):
 
 if __name__ == '__main__':
     # if running demo, update filenames first
-    # filenames = ['people2.jpg', 'people3.jpg']
-    # demo_nmf()
+    filenames = ['people2.jpg', 'people3.jpg']
+    demo_nmf(filenames)
 
-    reduce_all_imgs()
+    # update config.py with source (db) and destination folders to use reduce_all_imgs()
+    # reduce_all_imgs()

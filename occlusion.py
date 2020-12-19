@@ -10,8 +10,6 @@ def estimate_mouth(img, occlusion_type, files_dir=None, show=False):
         files_dir = os.getcwd()
 
     cascade = cv2.CascadeClassifier(os.path.join(files_dir, 'haarcascade_frontalface_default.xml'))
-    # cascade2 = cv2.CascadeClassifier(os.path.join(files_dir, 'haarcascade_frontalface_alt.xml'))
-    # eye_cascade = cv2.CascadeClassifier('os.path.join(files_dir, haarcascade_eye.xml'))
     eye2_cascade = cv2.CascadeClassifier(os.path.join(files_dir, 'haarcascade_eye_tree_eyeglasses.xml'))
 
     faces = cascade.detectMultiScale(img, 1.1, 4)
@@ -21,11 +19,6 @@ def estimate_mouth(img, occlusion_type, files_dir=None, show=False):
         return None
 
     face = faces[0]
-    # fx, fy, fw, fh = face
-    # cv2.rectangle(img, (fx, fy), (fx+fw, fy+fh), (200, 20, 0), 2)
-
-    # for (x, y, w, h) in eyes:
-    #     cv2.rectangle(img, (x, y), (x+w, y+h), (20, 200, 0), 2)
 
     # occlude face based on selected method
     if occlusion_type == FM:
@@ -39,7 +32,7 @@ def estimate_mouth(img, occlusion_type, files_dir=None, show=False):
     mouth_x, mouth_y, mouth_w, mouth_h = mouth
 
     if show:
-        cv2.rectangle(img, (mouth_x, mouth_y), (mouth_x+mouth_w, mouth_y+mouth_h), (20, 200, 0), 2)
+        img[mouth_y:mouth_y+mouth_h, mouth_x:mouth_x+mouth_w] = 0
         cv2.imshow("ting", cv2.resize(img, (1000, 1000)))
         cv2.waitKey(0)
 
@@ -77,11 +70,10 @@ def downsample(img):
     ds_img = cv2.pyrDown(ds_img, dstsize=(int(ds_img.shape[1]/2), int(ds_img.shape[0]/2)))
     return ds_img
 
-def occlude_sample():
-    filename = 'people2.jpg'
+def occlude_sample(occlusion_type, filename):
     img = cv2.cv2.cvtColor(cv2.imread(filename), cv2.COLOR_BGR2GRAY)   
     crop_img = img[378:1338, 581:1861]
-    estimate_mouth(crop_img, True)
+    estimate_mouth(crop_img, occlusion_type, None, True)
 
 # expression code to directory name mapping
 expr_dict = dict(
@@ -121,6 +113,7 @@ def occlude_all(occlusion_type):
         # iterate over imgs in this subject's dir
         os.chdir(full_path)
         for path2 in os.listdir(os.getcwd()):
+            os.chdir(full_path)
             if not os.path.isfile(path2): continue
             
             # confirm that it's an img file
@@ -163,4 +156,10 @@ MO = 'mouth_only'
 
 
 if __name__ == "__main__":
-    occlude_all(FM)
+    # update config.py with source (db) and destination folders to use occlude_all
+    # occlude_all(FM)
+
+    # update filename with an img of a face from the db to see the occlusion sample
+    # you can select either FM (full_mask) or MO (mouth_only) for occlusion type
+    filename = 'people2.jpg'
+    occlude_sample(MO, filename)

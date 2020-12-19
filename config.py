@@ -2,7 +2,7 @@ cfg = dict(
     # TODO: add your source and destination folders
     #       (source is the folder in the db with the folders of all subjects)
 
-    # full path
+    # absolute path (not just the name of the subfolder)
     source_folder=r'',
     dest_folder_nmf=r'',
     dest_folder_occlusion=r'',
