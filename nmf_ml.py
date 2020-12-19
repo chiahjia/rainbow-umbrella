@@ -58,7 +58,7 @@ class NMF_dataset(Dataset):
 
 dataset = NMF_dataset(nmf_data, nmf_labels)
 
-train_set, test_set = torch.utils.data.random_split(dataset, [1100, 107])
+train_set, test_set = torch.utils.data.random_split(dataset, [1100, 107]) # change depending on dataset size
 
 trainloader = DataLoader(train_set, batch_size=10, shuffle=True)
 testloader = DataLoader(test_set, batch_size=1, shuffle=True)
